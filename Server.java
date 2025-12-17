@@ -23,6 +23,7 @@ public class Server {
     private static final int NOTIFY_PORT = 6667;
     public static final String BASE_DIRECTORY = "server_files";
     private static final String FILES_LOG = BASE_DIRECTORY + File.separator + "files.log";
+    public static final String MESSAGES_SUFFIX = "_messages.txt";
     
     // Track online users
     private static Set<String> onlineUsers = new HashSet<>();
@@ -50,8 +51,8 @@ public class Server {
     
     // Configuration parameters
     public static final int MAX_BUFFER_SIZE = 10 * 1024 * 1024; // 10 MB
-    public static final int MIN_CHUNK_SIZE = 50 * 1024; // 50 KB
-    public static final int MAX_CHUNK_SIZE = 200 * 1024; // 200 KB
+    public static final int MIN_CHUNK_SIZE = 2 * 1024; // 2 KB
+    public static final int MAX_CHUNK_SIZE = 100 * 1024; // 200 KB
     
     private static int currentBufferSize = 0;
     private static Random random = new Random();
@@ -310,9 +311,7 @@ public class Server {
         return null;
     }
     
-    public synchronized static String getUserDirectory(String username) {
-        return BASE_DIRECTORY + File.separator + username;
-    }
+    
     
     public synchronized static boolean fileExists(String username, String fileName) {
         List<FileInfo> files = userFiles.get(username);

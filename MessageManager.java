@@ -5,10 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class MessageManager {
-    private static final String BASE_DIRECTORY = "server_files";
-    private static final String MESSAGES_SUFFIX = "_messages.txt";
     
-    // In-memory storage: username -> List of messages
     private Map<String, List<Message>> userMessages;
     
     public MessageManager() {
@@ -18,7 +15,7 @@ public class MessageManager {
     
     // Load all messages from files
     private void loadAllMessages() {
-        File baseDir = new File(BASE_DIRECTORY);
+        File baseDir = new File(Server.BASE_DIRECTORY);
         File[] userDirs = baseDir.listFiles(File::isDirectory);
         
         if (userDirs != null) {
@@ -29,9 +26,8 @@ public class MessageManager {
         }
     }
     
-    // Load messages for a specific user from file
     private void loadMessagesForUser(String username) {
-        String filePath = BASE_DIRECTORY + File.separator + username + File.separator + username + MESSAGES_SUFFIX;
+        String filePath = Server.BASE_DIRECTORY + File.separator + username + File.separator + username + Server.MESSAGES_SUFFIX;
         File messageFile = new File(filePath);
         
         if (!messageFile.exists()) {
@@ -49,15 +45,14 @@ public class MessageManager {
                     String messageId = parts[0];
                     Message.MessageType type = Message.MessageType.valueOf(parts[1]);
                     String from = parts[2];
-                    // Try to decode as Base64; fall back to plain text for backward compatibility
+                   
                     String content;
                     try {
                         content = new String(Base64.getDecoder().decode(parts[3]), StandardCharsets.UTF_8);
                     } catch (IllegalArgumentException e) {
-                        // Old format: content was stored as plain text
+                  
                         content = parts[3];
                     }
-                    // parts[4] is timestamp (informational only)
                     boolean read = Boolean.parseBoolean(parts[5]);
                     
                     Message message = new Message(messageId, type, from, content);
@@ -74,15 +69,15 @@ public class MessageManager {
         userMessages.put(username, messages);
     }
     
-    // Save messages for a specific user to file
+    
     private synchronized void saveMessagesForUser(String username) {
-        String userDir = BASE_DIRECTORY + File.separator + username;
+        String userDir = Server.BASE_DIRECTORY + File.separator + username;
         File dir = new File(userDir);
         if (!dir.exists()) {
             dir.mkdirs();
         }
         
-        String filePath = userDir + File.separator + username + MESSAGES_SUFFIX;
+        String filePath = userDir + File.separator + username + Server.MESSAGES_SUFFIX;
         List<Message> messages = userMessages.get(username);
         
         if (messages == null || messages.isEmpty()) {
@@ -91,7 +86,7 @@ public class MessageManager {
         
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
             for (Message message : messages) {
-                // Format: messageId|type|from|contentBase64|timestamp|read
+               
                 String encodedContent = Base64.getEncoder().encodeToString(
                         message.getContent().getBytes(StandardCharsets.UTF_8));
                 String line = message.getMessageId() + "|" +
@@ -102,20 +97,21 @@ public class MessageManager {
                              message.isRead();
                 writer.write(line);
                 writer.newLine();
+                // System.out.println("Saved message for " + username + ": " + message.getMessageId());
             }
         } catch (IOException e) {
             System.err.println("Error saving messages for " + username + ": " + e.getMessage());
         }
     }
     
-    // Add a new message for a user
+
     public synchronized void addMessage(String username, Message message) {
         List<Message> messages = userMessages.computeIfAbsent(username, k -> new ArrayList<>());
         messages.add(message);
         saveMessagesForUser(username);
     }
     
-    // Get unread messages for a user
+
     public synchronized List<Message> getUnreadMessages(String username) {
         List<Message> messages = userMessages.get(username);
         if (messages == null) {
@@ -131,7 +127,7 @@ public class MessageManager {
         return unread;
     }
     
-    // Get read messages for a user
+
     public synchronized List<Message> getReadMessages(String username) {
         List<Message> messages = userMessages.get(username);
         if (messages == null) {
@@ -147,7 +143,7 @@ public class MessageManager {
         return read;
     }
     
-    // Mark messages as read
+
     public synchronized void markMessagesAsRead(String username, List<String> messageIds) {
         List<Message> messages = userMessages.get(username);
         if (messages == null) {
@@ -162,7 +158,7 @@ public class MessageManager {
         saveMessagesForUser(username);
     }
     
-    // Get count of unread messages for a user
+
     public synchronized int getUnreadCount(String username) {
         List<Message> messages = userMessages.get(username);
         if (messages == null) {

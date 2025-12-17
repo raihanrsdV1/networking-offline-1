@@ -5,13 +5,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-/**
- * Manages persistent activity logging for uploads, downloads, and file requests.
- * Format: username|fileName|activityType|description|timestamp
- */
+
 public class ActivityLog {
-    private static final String BASE_DIRECTORY = "server_files";
-    private static final String LOG_FILE = BASE_DIRECTORY + File.separator + "activities.log";
+    private static final String LOG_FILE = Server.BASE_DIRECTORY + File.separator + "activities.log";
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     
     public enum ActivityType {
@@ -20,7 +16,7 @@ public class ActivityLog {
         REQUEST
     }
     
-    // In-memory cache: username -> List of activities
+    
     private Map<String, List<Activity>> userActivities;
     
     public ActivityLog() {
@@ -83,12 +79,10 @@ public class ActivityLog {
         System.out.println("Activity logged: " + username + " - " + type + " - " + fileName);
     }
     
-    /**
-     * Append a single activity to the log file.
-     */
+    
     private void appendToLog(Activity activity) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(LOG_FILE, true))) {
-            // Encode description as Base64 to prevent delimiter issues
+           
             String encodedDesc = Base64.getEncoder().encodeToString(
                     activity.getDescription().getBytes(java.nio.charset.StandardCharsets.UTF_8));
             
@@ -104,16 +98,12 @@ public class ActivityLog {
         }
     }
     
-    /**
-     * Get all activities for a specific user.
-     */
+    
     public synchronized List<Activity> getUserActivities(String username) {
         return userActivities.getOrDefault(username, new ArrayList<>());
     }
     
-    /**
-     * Get activities of a specific type for a user.
-     */
+
     public synchronized List<Activity> getUserActivitiesByType(String username, ActivityType type) {
         List<Activity> all = userActivities.getOrDefault(username, new ArrayList<>());
         List<Activity> filtered = new ArrayList<>();
@@ -125,9 +115,7 @@ public class ActivityLog {
         return filtered;
     }
     
-    /**
-     * Inner class representing a single activity entry.
-     */
+
     public static class Activity {
         private final String username;
         private final String fileName;

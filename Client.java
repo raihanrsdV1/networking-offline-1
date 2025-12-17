@@ -142,7 +142,7 @@ public class Client {
     }
     
     private void handleFileUpload() throws IOException, ClassNotFoundException {
-        // First ask if this upload is in response to a request
+        
         System.out.print("Is this upload in response to a request? (yes/no): ");
         String resp = scanner.nextLine().trim();
         boolean isResponseToRequest = resp.equalsIgnoreCase("yes");
@@ -153,7 +153,7 @@ public class Client {
             requestId = scanner.nextLine().trim();
         }
 
-        // Prompt for file path
+
         System.out.print("Enter file path on your system: ");
         String filePath = scanner.nextLine();
         
@@ -161,7 +161,7 @@ public class Client {
         java.io.File file = new java.io.File(filePath);
         if (!file.exists()) {
             System.out.println("File not found: " + filePath);
-            // Send cancel signal to server (must match server protocol)
+            
             if (isResponseToRequest) {
                 out.writeObject("REQUEST_UPLOAD");
                 out.writeObject(requestId == null ? "" : requestId);
@@ -177,15 +177,15 @@ public class Client {
         String originalFileName = file.getName();
         long fileSize = file.length();
         
-        // Prompt for custom file name
+        
         System.out.print("Enter file name (press Enter to use '" + originalFileName + "'): ");
         String customFileName = scanner.nextLine().trim();
         String fileName = customFileName.isEmpty() ? originalFileName : customFileName;
         
-        // Prompt for public/private
+        
         boolean isPublic;
         if (isResponseToRequest) {
-            // Per spec: response uploads are public by default
+            
             isPublic = true;
             System.out.println("(Response upload) File will be uploaded as PUBLIC.");
         } else {
@@ -303,11 +303,11 @@ public class Client {
     }
     
     private void handleFileDownload() throws IOException, ClassNotFoundException {
-        // Get and display available files from server
+        
         String availableFiles = (String) in.readObject();
         System.out.println(availableFiles);
         
-        // Prompt for owner name
+        
         System.out.print("\nEnter owner name (or 'cancel' to abort): ");
         String ownerName = scanner.nextLine().trim();
         
@@ -320,7 +320,7 @@ public class Client {
         
         out.writeObject(ownerName);
         
-        // Prompt for file name
+        
         System.out.print("Enter file name: ");
         String fileName = scanner.nextLine().trim();
         
@@ -342,7 +342,7 @@ public class Client {
         if (response.startsWith("DOWNLOAD_APPROVED:")) {
             long fileSize = Long.parseLong(response.substring(18));
             
-            // Prompt for download path
+            
             System.out.print("Enter download path (directory): ");
             String downloadDir = scanner.nextLine().trim();
             
@@ -350,13 +350,13 @@ public class Client {
                 downloadDir = ".";
             }
             
-            // Create directory if it doesn't exist
+            
             java.io.File dir = new java.io.File(downloadDir);
             if (!dir.exists()) {
                 dir.mkdirs();
             }
             
-            // Create output file
+            
             String outputPath = downloadDir + java.io.File.separator + fileName;
             java.io.File outputFile = new java.io.File(outputPath);
             
@@ -386,7 +386,7 @@ public class Client {
                         totalReceived += chunk.length;
                         chunkCount++;
                         
-                        // Show progress
+                        
                         int progress = (int) ((totalReceived * 100) / fileSize);
                         System.out.print("\rProgress: " + progress + "% (" + chunkCount + " chunks)");
                     }
@@ -398,7 +398,7 @@ public class Client {
     }
     
     private void handleFileRequest() throws IOException, ClassNotFoundException {
-        // Get description prompt
+        
         String prompt1 = (String) in.readObject();
         if (prompt1.equals("ENTER_DESCRIPTION")) {
             System.out.print("Enter file description: ");
@@ -406,7 +406,7 @@ public class Client {
             out.writeObject(description);
             out.flush();
         } else {
-            // Unexpected response - display and return
+            
             System.out.println(prompt1);
             return;
         }

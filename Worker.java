@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.io.File;
 
 
 public class Worker extends Thread {
@@ -282,6 +283,13 @@ public class Worker extends Thread {
                 byte[] chunk = (byte[]) in.readObject();
                 
                 if (Server.receiveChunk(fileId, chunk)) {
+                    // smol delay
+
+                    // try {
+                    //     Thread.sleep(1000); 
+                    // } catch (InterruptedException e) {
+                    //     Thread.currentThread().interrupt();
+                    // }
                     out.writeObject("ACK");
                 } else {
                     out.writeObject("ERROR");
@@ -372,10 +380,10 @@ public class Worker extends Thread {
         
         out.writeObject(availableFiles.toString());
         
-        // Get download request from client
+       
         String ownerName = (String) in.readObject();
         
-        // Check if cancelled
+        
         if (ownerName.equals("CANCEL_DOWNLOAD")) {
             out.writeObject("Download cancelled.");
             return;
@@ -397,7 +405,7 @@ public class Worker extends Thread {
         }
         
         // Get file from disk
-        String filePath = Server.getUserDirectory(ownerName) + java.io.File.separator + fileName;
+        String filePath = Server.BASE_DIRECTORY + File.separator + ownerName + File.separator + fileName;
         java.io.File file = new java.io.File(filePath);
         
         if (!file.exists()) {
@@ -417,6 +425,14 @@ public class Worker extends Thread {
                 byte[] chunk = new byte[bytesRead];
                 System.arraycopy(buffer, 0, chunk, 0, bytesRead);
                 out.writeObject(chunk);
+
+                // Add delay to simulate slow network / test concurrent downloads
+                // try {
+                //     Thread.sleep(100); 
+                // } catch (InterruptedException e) {
+                //     Thread.currentThread().interrupt();
+                // }
+
             }
             
             // Send completion signal
@@ -431,10 +447,10 @@ public class Worker extends Thread {
                                              "Server", content);
             msgManager.addMessage(username, downloadMsg);
             
-            // Notify if online
+
             Server.sendMessageNotification(username, "DOWNLOAD_COMPLETE: " + fileName);
             
-            // Log activity
+
             String downloadDesc = "Downloaded from " + ownerName;
             Server.getActivityLog().logActivity(username, fileName, ActivityLog.ActivityType.DOWNLOAD, downloadDesc);
             
